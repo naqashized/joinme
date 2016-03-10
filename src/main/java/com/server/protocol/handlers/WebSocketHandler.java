@@ -3,8 +3,10 @@ package com.server.protocol.handlers;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.actor.UntypedActorContext;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
+import com.joinme.actors.ActorSystemContainer;
 import com.joinme.actors.UnauthorizedAccess;
 import com.joinme.actors.UserActor;
 import com.server.app.App;
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static io.netty.handler.codec.http.HttpMethod.GET;
@@ -44,10 +47,11 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> implem
 
     private WebSocketServerHandshaker handshaker;
 
-    private Long userId;
 
     public WebSocketHandler(){
-        log.info("WebSocketHandler constructor called =>");
+        //log.info("WebSocketHandler constructor called =>"+userId);
+        //sys = ActorSystem.apply("joinme");
+        //log.info("sys =>"+sys);
     }
 
     @Override
@@ -123,73 +127,18 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> implem
 
         String request = ((TextWebSocketFrame) frame).text();
         log.debug("Received from client => " + request);
-        String response = processRequest(request);
+        processRequest(request);
 
-        sendToClient(response);
+        //sendToClient(response);
     }
 
-    public String processRequest(String request){
+    private void processRequest(String message)  {
 
-        String response = null;
-        if(userId == null)
-            response = processUnauthorizedRequest(request);
-        else
-            response = processAuthorizedMessage(request);
-        return response;
-    }
-
-    private String processAuthorizedMessage(String request){
-
-        String response = null;
-        ActorSystem sys = App.getActorSystem();
-        ActorRef actor = sys.actorFor(UserActor.PATH+userId);
-        //ActorRef actor = sys.actorOf(Props.create(UserActor.class, userId), userId.toString());
-        if(!actor.isTerminated()) {
-            Timeout t = new Timeout(5, TimeUnit.SECONDS);
-            Future<Object> fut = Patterns.ask(actor, request, t);
-
-            try {
-                response = (String) Await.result(fut, t.duration());
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        log.info("response =>" + response);
-        return response;
+             ctx.pipeline().get(ActorHandler.class).processRequest(message);
 
     }
 
-    private String processUnauthorizedRequest(String request){
 
-
-        log.info("processing unauthorized access =>"+request);
-        ActorSystem sys = App.getActorSystem();
-        //ActorRef actor = sys.context.actorFor(UserPresence.PATH + userId);
-        ActorRef ref = sys.actorFor(UnauthorizedAccess.PATH);
-        Timeout t = new Timeout(10, TimeUnit.SECONDS);
-        Future<Object> fut = Patterns.ask(ref, request, t);
-        String response = null;
-        try {
-            response = (String) Await.result(fut, t.duration());
-            JSONObject jsonObject = new JSONObject(response);
-            userId = jsonObject.getLong("userId");
-            ActorRef actor = sys.actorOf(Props.create(UserActor.class, userId), userId.toString());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        log.info("response =>" + response);
-        return response;
-    }
-
-//    private void sendToServiceBus(String message)  {
-//        try {
-//            ctx.pipeline().get(AmqpHandler.class).sendToServiceBus(message);
-//        } catch (IOException e) {
-//            log.error("error in sending message to service bus "+e.getMessage());
-//        }
-//    }
 
     public void sendToClient(String message) {
         log.debug("Forwarding to client => " + message);
@@ -228,6 +177,11 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> implem
         } else {
             return "ws://" + location;
         }
+    }
+
+    private UntypedActorContext getContext(){
+
+        return null;
     }
 }
 

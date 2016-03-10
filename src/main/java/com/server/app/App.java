@@ -3,6 +3,7 @@ package com.server.app;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import com.joinme.actors.ActorSystemContainer;
 import com.joinme.actors.UnauthorizedAccess;
 import com.server.constants.Configurations;
 import com.server.protocol.intializers.GenericBootstrap;
@@ -47,8 +48,12 @@ public class App {
         GenericBootstrap bootstrap = new GenericBootstrap(initializers);
         bootstrap.initialize();
 
-        sys = ActorSystem.apply("joinme");
+        ActorSystemContainer systemContainer = ActorSystemContainer.getInstance();
+        ActorSystem sys = systemContainer.getSystem();
 
+//        sys = ActorSystem.create("joinme");
+//
+        log.info("sys =>"+sys);
         ActorRef ref = sys.actorOf(Props.create(UnauthorizedAccess.class),UnauthorizedAccess.NAME);
 
     }

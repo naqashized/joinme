@@ -1,5 +1,6 @@
 package com.server.protocol.connectors;
 
+import com.server.protocol.handlers.ActorHandler;
 import com.server.protocol.handlers.WebSocketHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -52,7 +53,7 @@ public class WebSocketConnector {
                             if (sslCtx != null) {
                                 p.addLast(sslCtx.newHandler(ch.alloc()));
                             }
-                            p.addLast(new HttpServerCodec(), new HttpObjectAggregator(100000), new WebSocketHandler());
+                            p.addLast(new HttpServerCodec(), new HttpObjectAggregator(100000), new WebSocketHandler(),new ActorHandler(WebSocketHandler.class));
                         }
                     });
 

@@ -1,5 +1,6 @@
 package com.server.protocol.intializers;
 
+import com.server.protocol.handlers.ActorHandler;
 import com.server.protocol.handlers.WebSocketHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -28,6 +29,7 @@ public class WebSocketInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(new HttpObjectAggregator(100000));
         pipeline.addLast(new WebSocketHandler());
+        pipeline.addLast(new ActorHandler(WebSocketHandler.class));
 
     }
 }

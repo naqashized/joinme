@@ -1,5 +1,7 @@
 package com.joinme.actors;
 
+import akka.actor.ActorRef;
+import akka.actor.Props;
 import akka.actor.UntypedActor;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -24,6 +26,7 @@ public class UnauthorizedAccess extends UntypedActor {
         response.put("success", true);
         log.info("response =>"+response);
         getContext().sender().tell(response.toString(), getContext().self());
+        //getContext().actorOf(Props.create(UserActor.class, response.getLong("userId")), String.valueOf(response.getLong("userId")));
     }
 
     private Long validateAuthorization(String request){

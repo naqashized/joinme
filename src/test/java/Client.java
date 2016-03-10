@@ -32,7 +32,8 @@ public class Client {
         Client pushClient = new Client();
 
         Random random = new Random();
-        pushClient.userId = random.nextLong();
+        //pushClient.userId = random.nextLong();
+        pushClient.userId =11L;
         JSONObject request = new JSONObject()
                 .put("userId", pushClient.userId);
 
@@ -41,11 +42,13 @@ public class Client {
         pushClient.log.info("response =>"+response);
 
         JSONObject request2 = new JSONObject()
-                .put("request", "request from client");
+                .put("request", "request from client")
+                .put("actorId",10L);
+
 
         JSONObject response2 = pushClient.client.ask(request2);
 
-        pushClient.log.info("response2  =>"+response);
+        pushClient.log.info("response2  =>"+response2);
 
         BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
         while (true) {
